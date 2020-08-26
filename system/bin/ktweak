@@ -131,8 +131,6 @@ ctl kernel.perf_cpu_time_max_percent 5
 ctl kernel.sched_autogroup_enabled 1
 ctl kernel.sched_enable_thread_grouping 1
 ctl kernel.sched_child_runs_first 1
-ctl kernel.sched_downmigrate "50 50"
-ctl kernel.sched_upmigrate "80 80"
 ctl kernel.sched_group_downmigrate 50
 ctl kernel.sched_group_upmigrate 80
 ctl kernel.sched_tunable_scaling 0
@@ -145,6 +143,16 @@ ctl kernel.sched_min_task_util_for_boost_colocation 35
 ctl kernel.sched_nr_migrate 64
 ctl kernel.sched_schedstats 0
 ctl kernel.sched_wakeup_granularity_ns 5000000
+
+# Migration
+if [[ `sysctl -e kernel.sched_downmigrate` == *" "* ]]
+then
+	ctl kernel.sched_downmigrate "50 50"
+	ctl kernel.sched_upmigrate "80 80"
+else
+	ctl kernel.sched_downmigrate 50
+	ctl kernel.sched_upmigrate 80
+fi
 
 # Net
 ctl net.ipv4.tcp_ecn 1
