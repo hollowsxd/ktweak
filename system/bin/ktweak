@@ -141,50 +141,6 @@ then
 	write /sys/kernel/debug/sched_features NO_NONTASK_CAPACITY
 	write /sys/kernel/debug/sched_features TTWU_QUEUE
 fi
-
-# CPU
-for cpu in /sys/devices/system/cpu/cpu*/cpufreq/
-do
-	avail_govs=`cat "${cpu}scaling_available_governors"`
-	if [[ "$avail_govs" == *"schedutil"* ]]
-	then
-		_write "${cpu}scaling_governor" schedutil
-		write "${cpu}schedutil/up_rate_limit_us" 10000
-		write "${cpu}schedutil/down_rate_limit_us" 10000
-		write "${cpu}schedutil/rate_limit_us" 10000
-		write "${cpu}schedutil/hispeed_load" 80 
-		write "${cpu}schedutil/hispeed_freq" `cat "${cpu}cpuinfo_max_freq"`
-	elif [[ "$avail_govs" == *"interactive"* ]]
-	then
-		_write "${cpu}scaling_governor" interactive
-		write "${cpu}interactive/min_sample_time" 10000
-		write "${cpu}interactive/go_hispeed_load" 80
-		write "${cpu}interactive/hispeed_freq" `cat "${cpu}cpuinfo_max_freq"`
-	fi
-done
-
-# CAF CPU boost
-if [[ -d "/sys/module/cpu_boost" ]]
-then
-	write "/sys/module/cpu_boost/parameters/input_boost_freq" 0:1400000
-	write "/sys/module/cpu_boost/parameters/input_boost_ms" 250
-fi
-
-# I/O
-for queue in /sys/block/*/queue/
-do
-	avail_scheds=`cat "${queue}scheduler"`
-	for sched in cfq noop kyber bfq mq-deadline none
-	do
-		if [[ "$avail_scheds" == *"$sched"* ]]
-		then
-			_write "${queue}scheduler" "$sched"
-			break
-		fi
-	done
-	write "${queue}iostats" 0
-	write "${queue}read_ahead_kb" 64
-	write "${queue}nr_requests" 64
 done
 
 exit 0
